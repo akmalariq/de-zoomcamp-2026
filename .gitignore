@@ -1,0 +1,88 @@
+# .gitignore for Data Engineering Zoomcamp 2026
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Data files
+*.csv
+*.parquet
+*.xlsx
+*.xls
+data/
+*.db
+*.sqlite
+*.duckdb
+*.duckdb.wal
+
+# Allow dbt seed files
+!**/seeds/*.csv
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+terraform.tfvars
+*.tfvars
+
+# Docker
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Environment variables
+.env
+.env.local
+
+# GCP credentials
+*-credentials.json
+*-service-account.json
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# dbt
+target/
+dbt_packages/
+dbt_modules/
