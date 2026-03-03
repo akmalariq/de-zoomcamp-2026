@@ -1,58 +1,62 @@
-# Module 5 Homework: Batch Processing - Answers
+# Module 5 Homework: Data Platforms (Bruin) - Answers
 
-## Q1: Spark Version
+## Q1: Required Files in a Bruin Project
 
-**Answer: 4.1.1**
+**Answer: `pipeline.yml` and `assets/` only**
 
-Installed PySpark via `uv add pyspark`, created a local SparkSession, and ran `spark.version`.
+The minimal required structure is:
 
-## Q2: Average Parquet File Size after Repartition
-
-**Answer: ~25 MB**
-
-Read `yellow_tripdata_2024-10.parquet`, repartitioned to 4 partitions, saved as parquet.
-Actual average file size: **22.4 MB** → closest option is **25 MB**.
-
-```python
-df = spark.read.parquet("yellow_tripdata_2024-10.parquet")
-df.repartition(4).write.mode("overwrite").parquet("output/")
+```text
+my-pipeline/
+├─ pipeline.yml
+└─ assets/
+   ├─ asset1.sql
+   └─ asset2.py
 ```
 
-## Q3: Taxi Trips Starting on October 15th
+`.bruin.yml` is **auto-generated** at the repo root the first time you run `bruin validate` or `bruin run` — you don't create it manually.
 
-**Answer: 125,567**
+## Q2: Materialization Strategy for Time-Based Interval Processing
 
-```python
-df.filter(F.to_date("tpep_pickup_datetime") == "2024-10-15").count()
-# Result: 128,893 → closest option: 125,567
+**Answer: `time_interval` — incremental based on a time column**
+
+`time_interval` deletes and re-inserts data for a specific time window, making it ideal for monthly NYC taxi data where you process one month at a time without rebuilding the entire table.
+
+## Q3: Overriding a Variable When Running the Pipeline
+
+**Answer: `bruin run --var 'taxi_types=["yellow"]'`**
+
+The `--var` flag accepts key=value pairs. Since `taxi_types` expects an array, the correct format uses JSON array syntax with single quotes to wrap the expression.
+
+## Q4: Running an Asset with All Downstream Dependencies
+
+**Answer: `bruin run ingestion/trips.py --downstream`**
+
+The `--downstream` flag tells Bruin to run the specified asset and all assets that depend on it.
+
+## Q5: Quality Check for No NULL Values
+
+**Answer: `name: not_null`**
+
+```yaml
+checks:
+  - name: not_null
 ```
 
-## Q4: Length of Longest Trip in Hours
+The `not_null` check ensures the column never contains NULL values and fails the pipeline if any are found.
 
-**Answer: 162**
+## Q6: Visualizing the Dependency Graph Between Assets
 
-```python
-df.withColumn(
-    "duration_hours",
-    (F.unix_timestamp("tpep_dropoff_datetime") - F.unix_timestamp("tpep_pickup_datetime")) / 3600
-).agg(F.max("duration_hours")).collect()[0][0]
-# Result: 162.6 hours → 162
+**Answer: `bruin lineage`**
+
+```bash
+bruin lineage path/to/asset.sql
 ```
 
-## Q5: Spark UI Port
+Shows upstream and downstream dependencies for an asset. Use `--full` to include indirect dependencies.
 
-**Answer: 4040**
+## Q7: Flag to Create Tables from Scratch on a New Database
 
-Spark's web UI runs on port **4040** by default (`http://localhost:4040`).
+**Answer: `--full-refresh`**
 
-## Q6: Least Frequent Pickup Location Zone
-
-**Answer: Governor's Island/Ellis Island/Liberty Island**
-
-Joined with `taxi_zone_lookup.csv` on `PULocationID`, grouped by zone, sorted ascending.
-
-```python
-df.join(zones, df["PULocationID"] == zones["LocationID"], "left") \
-  .groupBy("Zone").count().orderBy("count").first()
-# Result: Governor's Island/Ellis Island/Liberty Island (1 trip)
-```
+`--full-refresh` truncates the table before running and sets `full_refresh = True` in Jinja templates, ensuring a clean slate on a new DuckDB database.
