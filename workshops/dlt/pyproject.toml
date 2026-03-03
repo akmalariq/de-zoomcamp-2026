@@ -1,0 +1,8 @@
+[project]
+name = "taxi-dlt"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.12"
+dependencies = [
+    "dlt[duckdb]>=1.22.2",
+]
